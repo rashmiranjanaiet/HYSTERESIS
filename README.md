@@ -1,3 +1,9 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+# HYSTERESIS
+=======
+>>>>>>> 5a16324 (Updated files)
 # Hysteresis Clone + MongoDB Login
 
 ## Run
@@ -29,3 +35,7 @@ Configured from `.env`:
 - `MONGODB_URI`
 - `MONGODB_DB`
 - `JWT_SECRET`
+<<<<<<< HEAD
+=======
+>>>>>>> 83545fe (Initial commit)
+>>>>>>> 5a16324 (Updated files)
