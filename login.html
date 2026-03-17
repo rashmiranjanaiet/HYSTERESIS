@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hysteresis Auth</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #0f1115;
+        font-family: Arial, sans-serif;
+        color: #e8ecf3;
+      }
+
+      .wrap {
+        width: min(560px, 92vw);
+        background: #171a21;
+        border: 1px solid #2a2f3b;
+        border-radius: 14px;
+        padding: 18px;
+      }
+
+      h1 {
+        margin: 0 0 14px;
+        font-size: 22px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+
+      .card {
+        background: #11141b;
+        border: 1px solid #242a36;
+        border-radius: 12px;
+        padding: 12px;
+      }
+
+      label {
+        display: block;
+        font-size: 12px;
+        margin: 8px 0 4px;
+      }
+
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        border-radius: 8px;
+        border: 1px solid #30394a;
+        background: #0c0f15;
+        color: #e8ecf3;
+      }
+
+      button {
+        margin-top: 10px;
+        width: 100%;
+        padding: 9px 10px;
+        border: 0;
+        border-radius: 8px;
+        background: #4a80ff;
+        color: white;
+        cursor: pointer;
+      }
+
+      .actions {
+        margin-top: 12px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      pre {
+        margin-top: 12px;
+        background: #0c0f15;
+        border: 1px solid #242a36;
+        border-radius: 10px;
+        padding: 10px;
+        max-height: 220px;
+        overflow: auto;
+        font-size: 12px;
+      }
+
+      @media (max-width: 680px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>MongoDB User Login Test</h1>
+
+      <div class="grid">
+        <form class="card" id="registerForm">
+          <strong>Register</strong>
+          <label for="rName">Name</label>
+          <input id="rName" placeholder="Your name" />
+
+          <label for="rEmail">Email</label>
+          <input id="rEmail" type="email" placeholder="you@example.com" required />
+
+          <label for="rPassword">Password</label>
+          <input id="rPassword" type="password" placeholder="Minimum 6 chars" required />
+
+          <button type="submit">Create Account</button>
+        </form>
+
+        <form class="card" id="loginForm">
+          <strong>Login</strong>
+          <label for="lEmail">Email</label>
+          <input id="lEmail" type="email" placeholder="you@example.com" required />
+
+          <label for="lPassword">Password</label>
+          <input id="lPassword" type="password" required />
+
+          <button type="submit">Login</button>
+        </form>
+      </div>
+
+      <div class="actions">
+        <button id="meBtn" type="button">Get Profile (/api/auth/me)</button>
+        <button id="clearBtn" type="button">Clear Token</button>
+      </div>
+
+      <pre id="output">Ready.</pre>
+    </div>
+
+    <script>
+      const output = document.getElementById("output");
+      const tokenKey = "hysteresis_auth_token";
+
+      function setOutput(value) {
+        output.textContent =
+          typeof value === "string" ? value : JSON.stringify(value, null, 2);
+      }
+
+      function saveToken(token) {
+        localStorage.setItem(tokenKey, token);
+      }
+
+      function getToken() {
+        return localStorage.getItem(tokenKey);
+      }
+
+      async function callApi(url, options = {}) {
+        const headers = {
+          "Content-Type": "application/json",
+          ...(options.headers || {}),
+        };
+        const res = await fetch(url, { ...options, headers });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.error || "Request failed");
+        }
+        return data;
+      }
+
+      document
+        .getElementById("registerForm")
+        .addEventListener("submit", async (event) => {
+          event.preventDefault();
+          try {
+            const result = await callApi("/api/auth/register", {
+              method: "POST",
+              body: JSON.stringify({
+                name: document.getElementById("rName").value,
+                email: document.getElementById("rEmail").value,
+                password: document.getElementById("rPassword").value,
+              }),
+            });
+            if (result.token) {
+              saveToken(result.token);
+            }
+            setOutput(result);
+          } catch (error) {
+            setOutput(error.message);
+          }
+        });
+
+      document.getElementById("loginForm").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        try {
+          const result = await callApi("/api/auth/login", {
+            method: "POST",
+            body: JSON.stringify({
+              email: document.getElementById("lEmail").value,
+              password: document.getElementById("lPassword").value,
+            }),
+          });
+          if (result.token) {
+            saveToken(result.token);
+          }
+          setOutput(result);
+        } catch (error) {
+          setOutput(error.message);
+        }
+      });
+
+      document.getElementById("meBtn").addEventListener("click", async () => {
+        try {
+          const token = getToken();
+          const result = await callApi("/api/auth/me", {
+            headers: { Authorization: `Bearer ${token || ""}` },
+          });
+          setOutput(result);
+        } catch (error) {
+          setOutput(error.message);
+        }
+      });
+
+      document.getElementById("clearBtn").addEventListener("click", () => {
+        localStorage.removeItem(tokenKey);
+        setOutput("Token cleared.");
+      });
+    </script>
+  </body>
+</html>
