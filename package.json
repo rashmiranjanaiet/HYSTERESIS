@@ -3,6 +3,9 @@
   "private": true,
   "version": "1.0.0",
   "description": "Static local server for the Hysteresis frontend clone",
+  "engines": {
+    "node": "22.x"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.2",
     "dotenv": "^17.2.3",
