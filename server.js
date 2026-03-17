@@ -11,11 +11,7 @@ dotenv.config();
 
 const ROOT_DIR = __dirname;
 const PORT = Number(process.env.PORT || 4173);
-<<<<<<< HEAD
-const HOST = process.env.HOST || "::";
-=======
 const HOST = process.env.HOST || "0.0.0.0";
->>>>>>> 5a16324 (Updated files)
 const MONGODB_URI = process.env.MONGODB_URI;
 const MONGODB_DB = process.env.MONGODB_DB || "hysteresis_auth";
 const JWT_SECRET = process.env.JWT_SECRET || "change-me";
